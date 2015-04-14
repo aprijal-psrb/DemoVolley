@@ -18,8 +18,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -36,10 +41,29 @@ public class MainActivity extends ActionBarActivity {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                output.setText("Response => " + response.toString());
+                int success = 0;
+                List<String> listNama_barang = new ArrayList<>();
+                try {
+                    success = response.getInt("success");
+                    if(success == 1){
+                        JSONArray all = response.getJSONArray("all_barang");
+                        for (int x = 0; x < all.length(); x++){
+                            JSONObject c = all.getJSONObject(x);
+                            String nama_barang = c.getString("nama_barang");
+                            listNama_barang.add(nama_barang);
+                        }
+                    }
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+                String text = "";
+                for (int i = 0; i < listNama_barang.size(); i++){
+                    text = text + listNama_barang.get(i) + "\n";
+                }
+                output.setText(text);
                 SharedPreferences mData = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
                 SharedPreferences.Editor editor = mData.edit();
-                editor.putString("response",response.toString());
+                editor.putString("response", response.toString());
                 editor.apply();
             }
         }, new Response.ErrorListener() {
@@ -49,13 +73,26 @@ public class MainActivity extends ActionBarActivity {
                 SharedPreferences mData = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
                 String stringObj = mData.getString("response", "Cache Tidak Ada");
                 int success = 0;
+                List<String> listNama_barang = new ArrayList<>();
                 try {
                     JSONObject jsonObject = new JSONObject(stringObj);
                     success = jsonObject.getInt("success");
+                    if(success == 1){
+                        JSONArray all = jsonObject.getJSONArray("all_barang");
+                        for (int x = 0; x < all.length(); x++){
+                            JSONObject c = all.getJSONObject(x);
+                            String nama_barang = c.getString("nama_barang");
+                            listNama_barang.add(nama_barang);
+                        }
+                    }
                 }catch (JSONException e){
                     e.printStackTrace();
                 }
-                output.setText(success+"");
+                String text = "";
+                for (int i = 0; i < listNama_barang.size(); i++){
+                    text = text + listNama_barang.get(i) + "\n";
+                }
+                output.setText(text);
             }
         });
         queue.add(jsonObjectRequest);
