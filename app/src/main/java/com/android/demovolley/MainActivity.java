@@ -1,6 +1,7 @@
 package com.android.demovolley;
 
 import android.app.DownloadManager;
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 
@@ -35,11 +37,25 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onResponse(JSONObject response) {
                 output.setText("Response => " + response.toString());
+                SharedPreferences mData = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
+                SharedPreferences.Editor editor = mData.edit();
+                editor.putString("response",response.toString());
+                editor.apply();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(),"Get Cache",Toast.LENGTH_SHORT).show();
+                SharedPreferences mData = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
+                String stringObj = mData.getString("response", "Cache Tidak Ada");
+                int success = 0;
+                try {
+                    JSONObject jsonObject = new JSONObject(stringObj);
+                    success = jsonObject.getInt("success");
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+                output.setText(success+"");
             }
         });
         queue.add(jsonObjectRequest);
